@@ -1,0 +1,395 @@
+:root {
+  --bg-primary: #060608;
+  --bg-card: rgba(14, 14, 18, 0.72);
+  --border-subtle: rgba(255, 255, 255, 0.1);
+  --text-primary: #ffffff;
+  --text-secondary: #a1a1aa;
+  --accent: #6cabdd;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  overflow-x: hidden;
+}
+
+.app-container {
+  min-height: 220vh;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+/* --- FONDO ANIMADO TIPO REALIDAD AUMENTADA (AR / HUD) --- */
+.ar-background {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+  perspective: 900px;
+}
+
+.ar-grid {
+  position: absolute;
+  inset: -50%;
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-size: 60px 60px;
+  transform: rotateX(55deg) translateY(-10%);
+  animation: gridMove 14s linear infinite;
+}
+
+@keyframes gridMove {
+  0% { transform: rotateX(55deg) translateY(0); }
+  100% { transform: rotateX(55deg) translateY(60px); }
+}
+
+.ar-scanner-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  box-shadow: 0 0 20px var(--accent);
+  opacity: 0.55;
+  animation: scanVertical 6s ease-in-out infinite alternate;
+}
+
+@keyframes scanVertical {
+  0% { top: 8%; }
+  100% { top: 92%; }
+}
+
+.ar-hud-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 620px;
+  height: 620px;
+  transform: translate(-50%, -50%);
+  border: 1px dashed rgba(255, 255, 255, 0.12);
+  border-radius: 50%;
+  box-shadow: inset 0 0 80px rgba(108, 171, 221, 0.08);
+  animation: spinSlow 35s linear infinite;
+}
+
+@keyframes spinSlow {
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* --- ENCABEZADO TRANSLÚCIDO --- */
+.navbar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.25rem 8%;
+  background: rgba(12, 12, 16, 0.45);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.brand {
+  font-size: 1.3rem;
+  font-weight: 900;
+  letter-spacing: 2.5px;
+}
+
+.brand span {
+  color: var(--accent);
+  transition: color 0.35s ease;
+}
+
+.athlete-switcher {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.switcher-btn {
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  padding: 0.55rem 1.1rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.switcher-btn:hover {
+  border-color: var(--text-primary);
+  color: var(--text-primary);
+}
+
+.switcher-btn.active {
+  background-color: var(--accent);
+  border-color: var(--accent);
+  color: #000000;
+}
+
+/* --- FIGURA CENTRAL ANDROIDE POR PARTES (3D + SCROLL) --- */
+.android-core-stage {
+  position: fixed;
+  top: 52%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(440px, 85vw);
+  height: 580px;
+  z-index: 1;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.android-frame {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  animation: float3D 6s ease-in-out infinite;
+}
+
+@keyframes float3D {
+  0%, 100% { transform: rotateY(-6deg) rotateX(2deg) translateY(0px); }
+  50% { transform: rotateY(6deg) rotateX(-2deg) translateY(-10px); }
+}
+
+.hud-corner {
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  border-color: var(--accent);
+  border-style: solid;
+  opacity: 0.7;
+  transition: border-color 0.35s ease;
+}
+.top-left { top: 0; left: 0; border-width: 2px 0 0 2px; }
+.top-right { top: 0; right: 0; border-width: 2px 2px 0 0; }
+.bottom-left { bottom: 0; left: 0; border-width: 0 0 2px 2px; }
+.bottom-right { bottom: 0; right: 0; border-width: 0 2px 2px 0; }
+
+.android-part {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: all 0.75s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.android-part img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: grayscale(100%) contrast(130%) drop-shadow(0 0 18px var(--accent));
+}
+
+/* Cortes de ensamblaje por módulos */
+.part-head {
+  clip-path: inset(0 0 68% 0);
+  transform: translateY(-35px) scale(0.95);
+}
+
+.part-torso {
+  clip-path: inset(32% 0 36% 0);
+  transform: translateX(45px) scale(0.95);
+}
+
+.part-legs {
+  clip-path: inset(64% 0 0 0);
+  transform: translateY(45px) scale(0.95);
+}
+
+.android-part.assembled {
+  opacity: 0.92;
+  transform: translate(0, 0) scale(1);
+}
+
+.part-tag {
+  position: absolute;
+  right: -10px;
+  background: rgba(0, 0, 0, 0.75);
+  border-left: 3px solid var(--accent);
+  padding: 0.25rem 0.6rem;
+  font-size: 0.65rem;
+  font-family: monospace;
+  letter-spacing: 1px;
+  color: var(--accent);
+}
+.part-head .part-tag { top: 14%; }
+.part-torso .part-tag { top: 46%; }
+.part-legs .part-tag { top: 76%; }
+
+/* --- SECCIONES SUPERPUESTAS --- */
+.hero-section {
+  position: relative;
+  z-index: 2;
+  min-height: 92vh;
+  display: flex;
+  align-items: center;
+  padding: 4rem 8%;
+}
+
+.hero-content {
+  max-width: 620px;
+  background: rgba(6, 6, 8, 0.55);
+  backdrop-filter: blur(8px);
+  padding: 2rem;
+  border-left: 2px solid var(--accent);
+}
+
+.meta-tag {
+  color: var(--accent);
+  font-weight: 800;
+  font-size: 0.85rem;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-bottom: 1rem;
+}
+
+.hero-title {
+  font-size: clamp(2.5rem, 5.5vw, 4.6rem);
+  font-weight: 900;
+  line-height: 1.04;
+  text-transform: uppercase;
+}
+
+.hero-bio {
+  color: var(--text-secondary);
+  font-size: 1.05rem;
+  margin: 1.5rem 0 2rem;
+  line-height: 1.65;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.primary-btn {
+  background-color: var(--accent);
+  color: #000000;
+  padding: 0.95rem 2rem;
+  font-weight: 800;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  text-decoration: none;
+  transition: transform 0.2s ease, background-color 0.35s ease;
+}
+
+.primary-btn:hover {
+  transform: translateY(-2px);
+}
+
+.accent-badge {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--text-secondary);
+}
+
+.stats-grid {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.5rem;
+  padding: 4rem 8%;
+}
+
+.stat-card {
+  background-color: var(--bg-card);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border-subtle);
+  padding: 2rem;
+  transition: border-color 0.3s ease, transform 0.2s ease;
+}
+
+.stat-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-3px);
+}
+
+.stat-value {
+  font-size: 3rem;
+  font-weight: 900;
+}
+
+.stat-value span {
+  color: var(--accent);
+  font-size: 1.6rem;
+  margin-left: 0.2rem;
+}
+
+.stat-label {
+  margin-top: 0.75rem;
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+}
+
+.biometrics-section {
+  position: relative;
+  z-index: 2;
+  padding: 4rem 8% 6rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.bio-panel {
+  max-width: 480px;
+  background: var(--bg-card);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border-subtle);
+  border-right: 3px solid var(--accent);
+  padding: 2rem;
+}
+
+.bio-panel h2 {
+  font-size: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.bio-panel p {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.footer {
+  position: relative;
+  z-index: 2;
+  margin-top: auto;
+  padding: 2rem 8%;
+  background: rgba(6, 6, 8, 0.85);
+  border-top: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  letter-spacing: 1.5px;
+}
