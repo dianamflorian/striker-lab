@@ -1,10 +1,19 @@
 import { useState, useEffect } from 'react';
 import { ATHLETES, type Athlete } from './data/athletes';
+import { CosmosCanvas } from './components/CosmosCanvas';
 import './App.css';
+
+const COMPASS_VIEWS = [
+  { label: 'N // 0°', angle: 0 },
+  { label: 'E // 90°', angle: 90 },
+  { label: 'S // 180°', angle: 180 },
+  { label: 'W // 270°', angle: 270 },
+];
 
 export function App() {
   const [selected, setSelected] = useState<Athlete>(ATHLETES[0]);
   const [scrollProgress, setScrollProgress] = useState(0);
+  const [heading, setHeading] = useState(0);
 
   useEffect(() => {
     document.documentElement.style.setProperty('--accent', selected.accentColor);
@@ -22,13 +31,10 @@ export function App() {
 
   return (
     <div className="app-container">
-      {/* Fondo animado estilo Realidad Aumentada / HUD */}
-      <div className="ar-background">
-        <div className="ar-grid" />
-        <div className="ar-scanner-line" />
-        <div className="ar-hud-ring" />
-      </div>
+      {/* Bóveda Celeste Astrofotográfica en 360° */}
+      <CosmosCanvas heading={heading} accentColor={selected.accentColor} />
 
+      {/* Encabezado Translúcido */}
       <header className="navbar">
         <div className="brand">
           STRIKER<span>LAB</span>
@@ -47,35 +53,54 @@ export function App() {
         </div>
       </header>
 
-      {/* Núcleo Central Fijo: Ensamblaje Androide por Scroll */}
+      {/* Selector Panorámico de Horizonte (Norte, Este, Sur, Oeste) */}
+      <div className="compass-bar" aria-label="Sky Panorama Orientation">
+        <span className="compass-title">SKY HORIZON:</span>
+        {COMPASS_VIEWS.map((view) => (
+          <button
+            key={view.label}
+            onClick={() => setHeading(view.angle)}
+            className={`compass-btn ${heading === view.angle ? 'active' : ''}`}
+          >
+            {view.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Núcleo Central: Ensamblaje Androide + Sistema Orbital */}
       <div className="android-core-stage" aria-hidden="true">
+        <div className="orbit-track primary-track">
+          <div className="soccer-ball-3d" />
+        </div>
+
+        <div className="orbit-track secondary-track">
+          <div className="satellite-sphere" />
+        </div>
+
         <div className="android-frame">
           <span className="hud-corner top-left" />
           <span className="hud-corner top-right" />
           <span className="hud-corner bottom-left" />
           <span className="hud-corner bottom-right" />
 
-          {/* Parte 1: Módulo Superior (Cabeza / Visión) */}
           <div className={`android-part part-head ${scrollProgress >= 0 ? 'assembled' : ''}`}>
             <img src="/haaland-android.png" alt="" />
             <div className="part-tag">SYS.01 // OPTICAL TARGETING</div>
           </div>
 
-          {/* Parte 2: Módulo Central (Torso / Motor) */}
-          <div className={`android-part part-torso ${scrollProgress >= 22 ? 'assembled' : ''}`}>
+          <div className={`android-part part-torso ${scrollProgress >= 18 ? 'assembled' : ''}`}>
             <img src="/haaland-android.png" alt="" />
             <div className="part-tag">SYS.02 // CORE POWER OUTPUT</div>
           </div>
 
-          {/* Parte 3: Módulo Inferior (Piernas / Propulsión) */}
-          <div className={`android-part part-legs ${scrollProgress >= 48 ? 'assembled' : ''}`}>
+          <div className={`android-part part-legs ${scrollProgress >= 38 ? 'assembled' : ''}`}>
             <img src="/haaland-android.png" alt="" />
             <div className="part-tag">SYS.03 // KINETIC VELOCITY</div>
           </div>
         </div>
       </div>
 
-      {/* Contenido Editorial Superpuesto */}
+      {/* Contenido Editorial Principal */}
       <main className="hero-section">
         <div className="hero-content">
           <div className="meta-tag">
@@ -93,6 +118,7 @@ export function App() {
         </div>
       </main>
 
+      {/* Tarjetas de Estadísticas */}
       <section id="telemetry" className="stats-grid">
         {selected.stats.map((stat) => (
           <article key={stat.label} className="stat-card">
@@ -105,18 +131,19 @@ export function App() {
         ))}
       </section>
 
+      {/* Panel de Telemetría Biomecánica */}
       <section className="biometrics-section">
         <div className="bio-panel">
           <div className="meta-tag">AUGMENTED TELEMETRY // 3D MESH</div>
           <h2>CYBERNETIC EFFICIENCY ANALYSIS</h2>
           <p>
-            Scroll down to complete modular hardware assembly. Each biomechanical sector locks into place with real-time velocity and spatial positioning data.
+            Move your cursor or switch cardinal horizons to rotate the celestial dome. Scroll down to lock each biomechanical sector into place.
           </p>
         </div>
       </section>
 
       <footer className="footer">
-        <p>STRIKERLAB ANALYTICS &copy; {new Date().getFullYear()} &mdash; AR MONOCHROME ENGINE</p>
+        <p>STRIKERLAB ANALYTICS &copy; {new Date().getFullYear()} &mdash; ATMOSPHERIC OBSERVATORY EDITION</p>
       </footer>
     </div>
   );
