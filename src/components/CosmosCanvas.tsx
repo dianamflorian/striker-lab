@@ -188,6 +188,105 @@ export function CosmosCanvas({ heading, accentColor }: CosmosCanvasProps) {
         }
       }
 
+
+            // --- HORIZONTE DE ONDULACIÓN SUAVE Y CUADRÍCULA ULTRALENTA ---
+      const horizonY = height * 0.68;
+      const centerX = width * 0.5;
+      const wormholeDepth = 42; // Curva cóncava suave sin picos bruscos
+
+      // Resplandor atmosférico neón suave + verde turquesa (#2dd4bf)
+      const horizonGlow = ctx.createLinearGradient(0, horizonY - 90, 0, horizonY + 80);
+      horizonGlow.addColorStop(0, 'rgba(0, 0, 0, 0)');
+      horizonGlow.addColorStop(0.4, 'rgba(45, 212, 191, 0.22)'); // Verde turquesa suave
+      horizonGlow.addColorStop(0.65, accentColor); // Neón suave
+      horizonGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      ctx.globalAlpha = 0.28 + Math.sin(time * 0.0008) * 0.04;
+      ctx.fillStyle = horizonGlow;
+      ctx.fillRect(0, horizonY - 90, width, 170);
+
+      // Curva gaussiana pura y simétrica (elimina cualquier quiebre o irregularidad)
+      const getWormholeY = (x: number) => {
+        const dist = (x - centerX) / (width * 0.34);
+        const well = Math.exp(-dist * dist) * wormholeDepth;
+        return horizonY + well;
+      };
+
+      // Suelo oscuro recortado con la curva suave del agujero de gusano
+      ctx.globalAlpha = 0.92;
+      ctx.fillStyle = '#030409';
+      ctx.beginPath();
+      ctx.moveTo(0, height);
+      for (let x = 0; x <= width; x += 8) {
+        ctx.lineTo(x, getWormholeY(x));
+      }
+      ctx.lineTo(width, height);
+      ctx.closePath();
+      ctx.fill();
+
+      // Línea superior continua en verde turquesa suave
+      ctx.globalAlpha = 0.55;
+      ctx.strokeStyle = '#2dd4bf';
+      ctx.lineWidth = 1.4;
+      ctx.beginPath();
+      for (let x = 0; x <= width; x += 8) {
+        const y = getWormholeY(x);
+        if (x === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+
+      // Líneas verticales en perspectiva con intermitencia lenta y suave
+      const numVerticalLines = 20;
+      for (let i = -numVerticalLines; i <= numVerticalLines; i++) {
+        const flicker = 0.16 + 0.34 * Math.abs(Math.sin(time * 0.0007 + i * 0.5));
+        ctx.globalAlpha = flicker;
+        ctx.strokeStyle = i % 2 === 0 ? '#2dd4bf' : accentColor;
+        ctx.lineWidth = i % 4 === 0 ? 1.2 : 0.7;
+
+        const topX = centerX + i * 24;
+        const startY = getWormholeY(topX);
+        const bottomX = centerX + i * 110;
+
+        ctx.beginPath();
+        ctx.moveTo(topX, startY);
+        ctx.lineTo(bottomX, height);
+        ctx.stroke();
+      }
+
+      // Líneas horizontales avanzando a velocidad mínima (5 veces más lenta)
+      const speed = (time * 0.00018)% 1;
+      const rows = 9;
+      for (let r = 0; r < rows; r++) {
+        const progress = (r + speed) / rows;
+        const depthFactor = Math.pow(progress, 2.2);
+        const pulse = 0.15 + 0.42 * Math.sin(time * 0.0009 - r * 0.5) ** 2;
+
+        ctx.globalAlpha = pulse * progress;
+
+
+         const lineGradient = ctx.createLinearGradient(0, horizonY, width, height);
+        lineGradient.addColorStop(0, '#9ff7ce');   // Verde turquesa suave
+        lineGradient.addColorStop(0.5, accentColor); // Color neón del deportista
+        lineGradient.addColorStop(1, '#2dd4bf');   // Verde turquesa suave al otro extremo
+
+        ctx.strokeStyle = lineGradient;
+
+
+        ctx.strokeStyle =lineGradient;
+        ctx.lineWidth = 0.65 + progress * 0.95;
+
+        ctx.beginPath();
+        for (let x = 0; x <= width; x += 12) {
+          const baseHorizon = getWormholeY(x);
+          const curvedY = baseHorizon + depthFactor * (height - baseHorizon);
+          if (x === 0) ctx.moveTo(x, curvedY);
+          else ctx.lineTo(x, curvedY);
+        }
+        ctx.stroke();
+      }
+
+
+
       ctx.globalAlpha = 1;
       animationFrameId = requestAnimationFrame(render);
     };
